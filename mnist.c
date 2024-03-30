@@ -127,6 +127,63 @@ void IdxFile_get3(IdxFile* self, int i, uint8_t* out)
     memcpy(out, &self->data[i*n], n);
 }
 
+int write_weights_biases(Layer* linput, Layer* lconv1, Layer* lconv2, Layer* lfull1, Layer* lfull2, Layer* loutput)
+{
+    FILE* linputf = fopen("linputf.txt", "r");
+    if (linputf == NULL) {
+        printf("Error opening file for writing.\n");
+        return 1;
+    }
+
+    FILE* lconv1f = fopen("lconv1f.txt", "r");
+    if (lconv1f == NULL) {
+        printf("Error opening file for writing.\n");
+        return 1;
+    }
+
+    FILE* lconv2f = fopen("lconv2f.txt", "r");
+    if (lconv2f == NULL) {
+        printf("Error opening file for writing.\n");
+        return 1;
+    }
+
+    FILE* lfull1f = fopen("lfull1f.txt", "r");
+    if (lfull1f == NULL) {
+        printf("Error opening file for writing.\n");
+        return 1;
+    }
+
+    FILE* lfull2f = fopen("lfull2f.txt", "r");
+    if (lfull2f == NULL) {
+        printf("Error opening file for writing.\n");
+        return 1;
+    }
+
+    FILE* loutputf = fopen("loutputf.txt", "r");
+    if (loutputf == NULL) {
+        printf("Error opening file for writing.\n");
+        return 1;
+    }
+
+    // print layer info in csv
+    Layer_details(linput, linputf);
+    Layer_details(lconv1, lconv1f);
+    Layer_details(lconv2, lconv2f);
+    Layer_details(lfull1, lfull1f);
+    Layer_details(lfull2, lfull2f);
+    Layer_details(loutput, loutputf);
+
+    // Close file
+    fclose(linputf);
+    fclose(lconv1f);
+    fclose(lconv2f);
+    fclose(lfull1f);
+    fclose(lfull2f);
+    fclose(loutputf);
+
+    return 1;
+}
+
 
 /* main */
 int main(int argc, char* argv[])
@@ -156,111 +213,130 @@ int main(int argc, char* argv[])
     Layer* loutput = Layer_create_full(lfull2, 10, 0.1);
 
     /* Read the training images & labels. */
-    IdxFile* images_train = NULL;
-    {
-        FILE* fp = fopen(argv[1], "rb");
-        if (fp == NULL) return 111;
-        images_train = IdxFile_read(fp);
-        if (images_train == NULL) return 111;
-        fclose(fp);
-    }
-    IdxFile* labels_train = NULL;
-    {
-        FILE* fp = fopen(argv[2], "rb");
-        if (fp == NULL) return 111;
-        labels_train = IdxFile_read(fp);
-        if (labels_train == NULL) return 111;
-        fclose(fp);
-    }
+    // IdxFile* images_train = NULL;
+    // {
+    //     FILE* fp = fopen(argv[1], "rb");
+    //     if (fp == NULL) return 111;
+    //     images_train = IdxFile_read(fp);
+    //     if (images_train == NULL) return 111;
+    //     fclose(fp);
+    // }
+    // IdxFile* labels_train = NULL;
+    // {
+    //     FILE* fp = fopen(argv[2], "rb");
+    //     if (fp == NULL) return 111;
+    //     labels_train = IdxFile_read(fp);
+    //     if (labels_train == NULL) return 111;
+    //     fclose(fp);
+    // }
 
-    fprintf(stderr, "training...\n");
-    double rate = 0.5;
-    double etotal = 0;
-    int nepoch = 1;
-    int batch_size = 512;
-    int train_size = images_train->dims[0];
-    for (int i = 0; i < nepoch * train_size/10; i++) {
-        /* Pick a random sample from the training data */
-        uint8_t img[28*28];
-        double x[28*28];
-        double y[10];
-        int index = rand() % train_size;
-        IdxFile_get3(images_train, index, img);
-        for (int j = 0; j < 28*28; j++) {
-            x[j] = img[j]/255.0;
-        }
-        Layer_setInputs(linput, x);
-        Layer_getOutputs(loutput, y);
-        int label = IdxFile_get1(labels_train, index);
-#if 0
-        fprintf(stderr, "label=%u, y=[", label);
-        for (int j = 0; j < 10; j++) {
-            fprintf(stderr, " %.3f", y[j]);
-        }
-        fprintf(stderr, "]\n");
-#endif
-        for (int j = 0; j < 10; j++) {
-            y[j] = (j == label)? 1 : 0;
-        }
-        Layer_learnOutputs(loutput, y);
-        etotal += Layer_getErrorTotal(loutput);
-        if ((i % batch_size) == 0) {
-            /* Minibatch: update the network for every n samples. */
-            Layer_update(loutput, rate/batch_size);
-        }
-        if ((i % 1000) == 0) {
-            fprintf(stderr, "i=%d, error=%.4f\n", i, etotal/1000);
-            etotal = 0;
-        }
-    }
+//     fprintf(stderr, "training...\n");
+//     double rate = 0.01;
+//     double etotal = 0;
+//     int nepoch = 5;
+//     int batch_size = 128;
+//     int train_size = images_train->dims[0];
+//     for (int i = 0; i < nepoch * train_size; i++) {
+//         /* Pick a random sample from the training data */
+//         uint8_t img[28*28];
+//         double x[28*28];
+//         double y[10];
+//         int index = rand() % train_size;
+//         IdxFile_get3(images_train, index, img);
+//         for (int j = 0; j < 28*28; j++) {
+//             x[j] = img[j]/255.0;
+//         }
+//         Layer_setInputs(linput, x);
+//         Layer_getOutputs(loutput, y);
+//         int label = IdxFile_get1(labels_train, index);
+// #if 0
+//         fprintf(stderr, "label=%u, y=[", label);
+//         for (int j = 0; j < 10; j++) {
+//             fprintf(stderr, " %.3f", y[j]);
+//         }
+//         fprintf(stderr, "]\n");
+// #endif
+//         for (int j = 0; j < 10; j++) {
+//             y[j] = (j == label)? 1 : 0;
+//         }
+//         Layer_learnOutputs(loutput, y);
+//         etotal += Layer_getErrorTotal(loutput);
+//         if ((i % batch_size) == 0) {
+//             /* Minibatch: update the network for every n samples. */
+//             Layer_update(loutput, rate/batch_size);
+//         }
+//         if ((i % 1000) == 0) {
+//             fprintf(stderr, "i=%d, error=%.4f\n", i, etotal/1000);
+//             etotal = 0;// IdxFile* images_train = NULL;
+//     {
+//         FILE* fp = fopen(argv[1], "rb");
+//         if (fp == NULL) return 111;
+//         images_train = IdxFile_read(fp);
+//         if (images_train == NULL) return 111;
+//         fclose(fp);
+//     }
+//     IdxFile* labels_train = NULL;
+//     {
+//         FILE* fp = fopen(argv[2], "rb");
+//         if (fp == NULL) return 111;
+//         labels_train = IdxFile_read(fp);
+//         if (labels_train == NULL) return 111;
+//         fclose(fp);
+//     }
 
-    IdxFile_destroy(images_train);
-    IdxFile_destroy(labels_train);
+//     fprintf(stderr, "training...\n");
+//     double rate = 0.5;
+//         }
+//         //write_weights_biases(linput, lconv1, lconv2, lfull1, lfull2, loutput);
+//     }
+
+//     IdxFile_destroy(images_train);
+//     IdxFile_destroy(labels_train);
 
     /* Training finished. */
-    FILE* linputf = fopen("linputf.txt", "w");
+    FILE* linputf = fopen("linputf.txt", "r");
     if (linputf == NULL) {
         printf("Error opening file for writing.\n");
         return 1;
     }
 
-    FILE* lconv1f = fopen("lconv1f.txt", "w");
+    FILE* lconv1f = fopen("lconv1f.txt", "r");
     if (lconv1f == NULL) {
         printf("Error opening file for writing.\n");
         return 1;
     }
 
-    FILE* lconv2f = fopen("lconv2f.txt", "w");
+    FILE* lconv2f = fopen("lconv2f.txt", "r");
     if (lconv2f == NULL) {
         printf("Error opening file for writing.\n");
         return 1;
     }
 
-    FILE* lfull1f = fopen("lfull1f.txt", "w");
+    FILE* lfull1f = fopen("lfull1f.txt", "r");
     if (lfull1f == NULL) {
         printf("Error opening file for writing.\n");
         return 1;
     }
 
-    FILE* lfull2f = fopen("lfull2f.txt", "w");
+    FILE* lfull2f = fopen("lfull2f.txt", "r");
     if (lfull2f == NULL) {
         printf("Error opening file for writing.\n");
         return 1;
     }
 
-    FILE* loutputf = fopen("loutputf.txt", "w");
+    FILE* loutputf = fopen("loutputf.txt", "r");
     if (loutputf == NULL) {
         printf("Error opening file for writing.\n");
         return 1;
     }
 
     // print layer info in csv
-    Layer_details(linput, linputf);
-    Layer_details(lconv1, lconv1f);
-    Layer_details(lconv2, lconv2f);
-    Layer_details(lfull1, lfull1f);
-    Layer_details(lfull2, lfull2f);
-    Layer_details(loutput, loutputf);
+    // Layer_details(linput, linputf);
+    // Layer_details(lconv1, lconv1f);
+    // Layer_details(lconv2, lconv2f);
+    // Layer_details(lfull1, lfull1f);
+    // Layer_details(lfull2, lfull2f);
+    // Layer_details(loutput, loutputf);
 
     // Print layer information
     // Layer_dump(linput, linputf);
@@ -278,6 +354,14 @@ int main(int argc, char* argv[])
     //Layer_dump(lfull1, stdout);
     //Layer_dump(lfull2, stdout);
     //Layer_dump(loutput, stdout);
+
+    Load_pretrainedValues(linput, linputf);
+    Load_pretrainedValues(lconv1, lconv1f);
+    Load_pretrainedValues(lconv2, lconv2f);
+    Load_pretrainedValues(lfull1, lfull1f);
+    Load_pretrainedValues(lfull2, lfull2f);
+    Load_pretrainedValues(loutput, loutputf);
+    
 
     /* Read the test images & labels. */
     

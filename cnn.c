@@ -246,18 +246,53 @@ void Layer_details(const Layer *self, FILE *fp)
     }
 }
 
-// void Load_pretrainedValues(const Layer *self, FILE *fp)
-// {
-//     // Read biases
-//     for (int i = 0; i < self->nbiases; ++i) {
-//         fscanf(fp, "%lf,", &(self->biases[i]));
-//     }
+void Load_pretrainedValues(const Layer *self, FILE *fp)
+{
+    assert (self != NULL);
+    Layer* lprev = self->lprev;
 
-//     // Read weights
-//     for (int i = 0; i < self->nweights; ++i) {
-//         fscanf(fp, "%lf,", &(self->weights[i]));
-//     }
-// }
+    switch (self->ltype)
+    {
+        case LAYER_FULL: /* Fully connected layer. */
+            assert (lprev != NULL);
+
+            for (int i = 0; i < self->nnodes; i++) {
+                fscanf(fp, "%lf", &(self->biases[i]));
+            }
+            fscanf(fp, "\n");
+
+            {
+                int k = 0;
+                for (int i = 0; i < self->nnodes; i++) {
+                    for (int j = 0; j < lprev->nnodes; j++) {
+                        fscanf(fp, "%lf", &(self->weights[k++]));
+                    }
+                    fscanf(fp, "\n");
+                }
+            }
+            fscanf(fp, "\n");
+            break;
+
+        case LAYER_CONV: /* Convolutional layer. */
+            assert (lprev != NULL);
+
+            {
+                int k = 0;
+                for (int z = 0; z < self->depth; z++) {
+                    fscanf(fp, "%lf", &(self->biases[z]));
+                    for (int j = 0; j < lprev->depth * self->data.conv.kernsize * self->data.conv.kernsize; j++) {
+                        fscanf(fp, "%lf", &(self->weights[k++]));
+                    }
+                    fscanf(fp, "\n");
+                }
+            }
+            break;
+
+        default: /* Default case. */
+            break;
+
+    }
+}
 
 /* Layer_feedForw_full(self)
    Performs feed forward updates.
