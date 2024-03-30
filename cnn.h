@@ -75,6 +75,11 @@ void Layer_dump(const Layer* self, FILE* fp);
 */
 void Layer_details(const Layer *self, FILE *fp);
 
+/* Load_pretrainedValues(self, fp)
+   Load pretrained model.
+*/
+//void Load_pretrainedValues(const Layer *self, FILE *fp);
+
 /* Layer_setInputs(self, values)
    Sets the input values.
 */

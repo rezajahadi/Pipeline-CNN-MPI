@@ -202,20 +202,62 @@ void Layer_dump(const Layer* self, FILE* fp)
 
 void Layer_details(const Layer *self, FILE *fp)
 {
-    // putting the biases in first line
-    for (int i = 0; i < self->nbiases; i++)
-    {
-        fprintf(fp, "%.4f,", self->biases[i]);
-    }
+    assert (self != NULL);
+    Layer* lprev = self->lprev;
 
-    fprintf(fp, "\n");
-
-    // putting the weights in second line
-    for (int i = 0; i < self->nweights; i++)
+    switch (self->ltype)
     {
-        fprintf(fp, "%.4f,", self->weights[i]);
+        case LAYER_FULL: /* Fully connected layer. */
+            assert (lprev != NULL);
+            for (int i = 0; i < self->nnodes; i++) {
+                fprintf(fp, " %.4f", self->biases[i]);
+            }
+            fprintf(fp, "\n");
+            {
+                int k = 0;
+                for (int i = 0; i < self->nnodes; i++) {
+                    for (int j = 0; j < lprev->nnodes; j++) {
+                        fprintf(fp, " %.4f", self->weights[k++]);
+                    }
+                    fprintf(fp, "\n");
+                }
+            }
+            fprintf(fp, "  \n");
+            break;
+
+        case LAYER_CONV: /* Convolutional layer. */
+            assert (lprev != NULL);
+
+            {
+                int k = 0;
+                for (int z = 0; z < self->depth; z++) {
+                    fprintf(fp, "  %.4f, ", self->biases[z]);
+                    for (int j = 0; j < lprev->depth * self->data.conv.kernsize * self->data.conv.kernsize; j++) {
+                        fprintf(fp, " %.4f", self->weights[k++]);
+                    }
+                    fprintf(fp, "\n");
+                }
+            }
+            break;
+
+        default: /* Default case. */
+            break;
+
     }
 }
+
+// void Load_pretrainedValues(const Layer *self, FILE *fp)
+// {
+//     // Read biases
+//     for (int i = 0; i < self->nbiases; ++i) {
+//         fscanf(fp, "%lf,", &(self->biases[i]));
+//     }
+
+//     // Read weights
+//     for (int i = 0; i < self->nweights; ++i) {
+//         fscanf(fp, "%lf,", &(self->weights[i]));
+//     }
+// }
 
 /* Layer_feedForw_full(self)
    Performs feed forward updates.
