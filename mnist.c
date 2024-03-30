@@ -13,15 +13,15 @@
 #include <string.h>
 #include "cnn.h"
 
-uint32_t be32toh(uint32_t big_endian) {
-    uint32_t result;
-    uint8_t *bytes = (uint8_t *)&big_endian;
-    result = (uint32_t)bytes[0] << 24;
-    result |= (uint32_t)bytes[1] << 16;
-    result |= (uint32_t)bytes[2] << 8;
-    result |= (uint32_t)bytes[3];
-    return result;
-}
+// uint32_t be32toh(uint32_t big_endian) {
+//     uint32_t result;
+//     uint8_t *bytes = (uint8_t *)&big_endian;
+//     result = (uint32_t)bytes[0] << 24;
+//     result |= (uint32_t)bytes[1] << 16;
+//     result |= (uint32_t)bytes[2] << 8;
+//     result |= (uint32_t)bytes[3];
+//     return result;
+// }
 
 
 /*  IdxFile
@@ -174,12 +174,12 @@ int main(int argc, char* argv[])
     }
 
     fprintf(stderr, "training...\n");
-    double rate = 0.1;
+    double rate = 0.5;
     double etotal = 0;
     int nepoch = 1;
-    int batch_size = 32;
+    int batch_size = 512;
     int train_size = images_train->dims[0];
-    for (int i = 0; i < nepoch * train_size; i++) {
+    for (int i = 0; i < nepoch * train_size/10; i++) {
         /* Pick a random sample from the training data */
         uint8_t img[28*28];
         double x[28*28];
@@ -253,21 +253,24 @@ int main(int argc, char* argv[])
         printf("Error opening file for writing.\n");
         return 1;
     }
-    // Print layer information
-    Layer_dump(linput, linputf);
-    Layer_dump(lconv1, lconv1f);
-    Layer_dump(lconv2, lconv2f);
-    Layer_dump(lfull1, lfull1f);
-    Layer_dump(lfull2, lfull2f);
-    Layer_dump(loutput, loutputf);
 
-    // Close file
-    fclose(linputf);
-    fclose(lconv1f);
-    fclose(lconv2f);
-    fclose(lfull1f);
-    fclose(lfull2f);
-    fclose(loutputf);
+    // print layer info in csv
+    Layer_details(linput, linputf);
+    Layer_details(lconv1, lconv1f);
+    Layer_details(lconv2, lconv2f);
+    Layer_details(lfull1, lfull1f);
+    Layer_details(lfull2, lfull2f);
+    Layer_details(loutput, loutputf);
+
+    // Print layer information
+    // Layer_dump(linput, linputf);
+    // Layer_dump(lconv1, lconv1f);
+    // Layer_dump(lconv2, lconv2f);
+    // Layer_dump(lfull1, lfull1f);
+    // Layer_dump(lfull2, lfull2f);
+    // Layer_dump(loutput, loutputf);
+
+    
 
     //Layer_dump(linput, stdout);
     //Layer_dump(lconv1, stdout);
@@ -334,6 +337,14 @@ int main(int argc, char* argv[])
     Layer_destroy(lfull1);
     Layer_destroy(lfull2);
     Layer_destroy(loutput);
+
+    // Close file
+    fclose(linputf);
+    fclose(lconv1f);
+    fclose(lconv2f);
+    fclose(lfull1f);
+    fclose(lfull2f);
+    fclose(loutputf);
 
     return 0;
 }

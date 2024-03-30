@@ -200,6 +200,23 @@ void Layer_dump(const Layer* self, FILE* fp)
     }
 }
 
+void Layer_details(const Layer *self, FILE *fp)
+{
+    // putting the biases in first line
+    for (int i = 0; i < self->nbiases; i++)
+    {
+        fprintf(fp, "%.4f,", self->biases[i]);
+    }
+
+    fprintf(fp, "\n");
+
+    // putting the weights in second line
+    for (int i = 0; i < self->nweights; i++)
+    {
+        fprintf(fp, "%.4f,", self->weights[i]);
+    }
+}
+
 /* Layer_feedForw_full(self)
    Performs feed forward updates.
 */

@@ -70,6 +70,11 @@ void Layer_destroy(Layer* self);
 */
 void Layer_dump(const Layer* self, FILE* fp);
 
+/* Layer_details(self, fp)
+   output info.
+*/
+void Layer_details(const Layer *self, FILE *fp);
+
 /* Layer_setInputs(self, values)
    Sets the input values.
 */
