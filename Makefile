@@ -33,8 +33,11 @@ get_mnist:
 test_bnn: ./bnn
 	./bnn
 
+train_mnist: ./mnist $(MNIST_FILES)
+	./mnist $(MNIST_FILES) 1
+
 test_mnist: ./mnist $(MNIST_FILES)
-	./mnist $(MNIST_FILES)
+	./mnist $(MNIST_FILES) 2
 
 test_rnn: ./rnn
 	./rnn
