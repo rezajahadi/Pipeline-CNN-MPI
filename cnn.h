@@ -104,3 +104,9 @@ void Layer_learnOutputs(Layer* self, const double* values);
    Updates the weights.
 */
 void Layer_update(Layer* self, double rate);
+
+/* Layer_feedForw_conv_withInput(self, lprev_outputs)
+   feedforward for conv.
+*/
+void Layer_feedForw_conv_withInput(Layer* self, double* lprev_outputs);
+void Layer_feedForw_full_withInput(Layer* self, double* lprev_outputs);

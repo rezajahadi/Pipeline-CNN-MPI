@@ -356,6 +356,65 @@ static void Layer_feedForw_full(Layer* self)
 #endif
 }
 
+void Layer_feedForw_full_withInput(Layer* self, double* lprev_outputs)
+{
+    assert (self->ltype == LAYER_FULL);
+    assert (self->lprev != NULL);
+    Layer* lprev = self->lprev;
+
+    int k = 0;
+    for (int i = 0; i < self->nnodes; i++) {
+        /* Compute Y = (W * X + B) without activation function. */
+        double x = self->biases[i];
+        for (int j = 0; j < lprev->nnodes; j++) {
+            x += (lprev_outputs[j] * self->weights[k++]);
+        }
+        self->outputs[i] = x;
+    }
+
+    if (self->lnext == NULL) {
+        /* Last layer - use Softmax. */
+        double m = -1;
+        for (int i = 0; i < self->nnodes; i++) {
+            double x = self->outputs[i];
+            if (m < x) { m = x; }
+        }
+        double t = 0;
+        for (int i = 0; i < self->nnodes; i++) {
+            double x = self->outputs[i];
+            double y = exp(x-m);
+            self->outputs[i] = y;
+            t += y;
+        }
+        for (int i = 0; i < self->nnodes; i++) {
+            self->outputs[i] /= t;
+            /* This isn't right, but set the same value to all the gradients. */
+            self->gradients[i] = 1;
+        }
+    } else {
+        /* Otherwise, use Tanh. */
+        for (int i = 0; i < self->nnodes; i++) {
+            double x = self->outputs[i];
+            double y = tanh(x);
+            self->outputs[i] = y;
+            self->gradients[i] = tanh_g(y);
+        }
+    }
+
+#if DEBUG_LAYER
+    fprintf(stderr, "Layer_feedForw_full(Layer%d):\n", self->lid);
+    fprintf(stderr, "  outputs = [");
+    for (int i = 0; i < self->nnodes; i++) {
+        fprintf(stderr, " %.4f", self->outputs[i]);
+    }
+    fprintf(stderr, "]\n  gradients = [");
+    for (int i = 0; i < self->nnodes; i++) {
+        fprintf(stderr, " %.4f", self->gradients[i]);
+    }
+    fprintf(stderr, "]\n");
+#endif
+}
+
 static void Layer_feedBack_full(Layer* self)
 {
     assert (self->ltype == LAYER_FULL);
@@ -429,6 +488,67 @@ static void Layer_feedForw_conv(Layer* self)
                                 int x = x0+dx;
                                 if (0 <= x && x < lprev->width) {
                                     v += lprev->outputs[p+x] * self->weights[q+dx];
+                                }
+                            }
+                        }
+                    }
+                }
+                /* Apply the activation function. */
+                v = relu(v);
+                self->outputs[i] = v;
+                self->gradients[i] = relu_g(v);
+                i++;
+            }
+        }
+    }
+    assert (i == self->nnodes);
+
+#if DEBUG_LAYER
+    fprintf(stderr, "Layer_feedForw_conv(Layer%d):\n", self->lid);
+    fprintf(stderr, "  outputs = [");
+    for (int i = 0; i < self->nnodes; i++) {
+        fprintf(stderr, " %.4f", self->outputs[i]);
+    }
+    fprintf(stderr, "]\n  gradients = [");
+    for (int i = 0; i < self->nnodes; i++) {
+        fprintf(stderr, " %.4f", self->gradients[i]);
+    }
+    fprintf(stderr, "]\n");
+#endif
+}
+
+void Layer_feedForw_conv_withInput(Layer* self, double* lprev_outputs)
+{
+    assert (self->ltype == LAYER_CONV);
+    assert (self->lprev != NULL);
+    Layer* lprev = self->lprev;
+
+    int kernsize = self->data.conv.kernsize;
+    int i = 0;
+    for (int z1 = 0; z1 < self->depth; z1++) {
+        /* z1: dst matrix */
+        /* qbase: kernel matrix base index */
+        int qbase = z1 * lprev->depth * kernsize * kernsize;
+        for (int y1 = 0; y1 < self->height; y1++) {
+            int y0 = self->data.conv.stride * y1 - self->data.conv.padding;
+            for (int x1 = 0; x1 < self->width; x1++) {
+                int x0 = self->data.conv.stride * x1 - self->data.conv.padding;
+                /* Compute the kernel at (x1,y1) */
+                /* (x0,y0): src pixel */
+                double v = self->biases[z1];
+                for (int z0 = 0; z0 < lprev->depth; z0++) {
+                    /* z0: src matrix */
+                    /* pbase: src matrix base index */
+                    int pbase = z0 * lprev->width * lprev->height;
+                    for (int dy = 0; dy < kernsize; dy++) {
+                        int y = y0+dy;
+                        if (0 <= y && y < lprev->height) {
+                            int p = pbase + y*lprev->width;
+                            int q = qbase + dy*kernsize;
+                            for (int dx = 0; dx < kernsize; dx++) {
+                                int x = x0+dx;
+                                if (0 <= x && x < lprev->width) {
+                                    v += lprev_outputs[p+x] * self->weights[q+dx];
                                 }
                             }
                         }

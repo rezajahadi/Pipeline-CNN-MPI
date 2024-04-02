@@ -17,7 +17,7 @@ MNIST_FILES= \
 all: test_rnn
 
 clean:
-	-$(RM) ./bnn ./mnist ./rnn *.o
+	-$(RM) ./bnn ./train_test ./rnn *.o
 
 get_mnist:
 	-mkdir ./data
@@ -33,11 +33,11 @@ get_mnist:
 test_bnn: ./bnn
 	./bnn
 
-train_mnist: ./mnist $(MNIST_FILES)
-	./mnist $(MNIST_FILES) 1
+train_mnist: ./train_test $(MNIST_FILES)
+	./train_test $(MNIST_FILES) 1
 
-test_mnist: ./mnist $(MNIST_FILES)
-	./mnist $(MNIST_FILES) 2
+test_mnist: ./train_test $(MNIST_FILES)
+	./train_test $(MNIST_FILES) 2
 
 test_rnn: ./rnn
 	./rnn
@@ -45,11 +45,11 @@ test_rnn: ./rnn
 ./bnn: bnn.c
 	$(CC) -o $@ $^ $(LIBS)
 
-./mnist: mnist.c cnn.c
+./mnist: train_test.c cnn.c
 	$(CC) -o $@ $^ $(LIBS)
 
 ./rnn: rnn.c
 	$(CC) -o $@ $^ $(LIBS)
 
-mnist.c: cnn.h
+train_test.c: cnn.h
 cnn.c: cnn.h
