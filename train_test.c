@@ -199,8 +199,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "training...\n");
         double rate = 0.1;
         double etotal = 0;
-        int nepoch = 10;
-        int batch_size = 32;
+        int nepoch = 5;
+        int batch_size = 128;
         int train_size = images_train->dims[0];
         for (int i = 0; i < nepoch * train_size; i++) {
             /* Pick a random sample from the training data */
