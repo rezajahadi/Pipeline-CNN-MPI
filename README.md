@@ -66,6 +66,9 @@ The code comprises the following components:
 - Ensure that MPI is properly configured and accessible in your environment.
 - If you face error:"'for' loop initial declaration used outside C99 mode", you can either declare the i outside the loop or use '-std=c99' for compilation.
 
+### Acknowledgments
+This program was developed using github.com/euske/nn1 repository. I extend my gratitude for their valuable contribution to the open-source community.
+
 ### Contributors
 - [Reza Jahadi](https://github.com/rezajahadi)
 - [Aye Sandar Thwe](https://github.com/ayesandarthwe)
