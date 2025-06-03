@@ -1,8 +1,22 @@
 ## CNN Inference with MPI Parallelization and Pipelining
 
-This C code implements Convolutional Neural Network (CNN) inference on the MNIST dataset. It utilizes Message Passing Interface (MPI) for parallelizing the inference process across multiple CPUs. Additionally, we have implemented pipelining to optimize the computation process.
+This project implements Convolutional Neural Network (CNN) inference on the MNIST dataset using C and MPI (Message Passing Interface) for distributed execution across multiple CPUs.
 
-In the traditional mode, each layer of the CNN would wait for the preceding layers to complete computation before proceeding. However, in our implementation, we assign layers to different CPUs. If the number of CPUs is less than the number of layers, the layers are divided among the CPUs. Conversely, if there are more CPUs than layers, additional CPUs are assigned to layers, resulting in data parallelism. This ensures that no layer remains idle during computation, and all layers contribute to the inference process simultaneously.
+## Parallel Inference Approaches
+
+We implement and compare two approaches for distributed inference:
+
+- **Data Parallelism** (`mnist_data.c`):  
+  Each MPI process runs a full copy of the CNN model and processes a subset of the input data independently. This method is efficient and easy to scale with minimal communication overhead.
+
+- **Pipeline Parallelism** (`mnist.c`):  
+  Different CNN layers are distributed across MPI processes. Each process computes one or more layers and passes intermediate results to the next, forming a computation pipeline. This approach reduces idle time across layers and improves hardware utilization.
+
+## Performance Comparison
+
+While the **data parallel** method typically offers better performance due to lower communication overhead, the **pipeline parallel** method provides a novel execution strategy that enables simultaneous computation across layers. Despite the extra inter-process communication, our results show that the pipeline method achieves **comparable performance**, making it a viable alternative for specific system configurations.
+
+In the following we show how to run the pipeline method.
 
 ### Usage
 
